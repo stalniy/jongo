@@ -75,12 +75,12 @@ type Formats = {
 }
 
 export type ValueTypeOf<T extends Property> = {
-  string: T extends StringProperty ? StringValueType<T> : string;
+  string: StringValueType<T>;
   number: number;
   boolean: boolean;
   null: null;
-  array: T extends ArrayProperty ? ValueTypeOf<T["items"]>[] : unknown[];
-  object: T extends ObjectProperty ? ObjectValueType<T> : Record<string, unknown>;
+  array: ArrayValueType<T>;
+  object: ObjectValueType<T>;
 }[T["type"]];
 
 type ArrayItem<T> = T extends ReadonlyArray<unknown> ? T[number] : never;
@@ -89,19 +89,30 @@ type ObjectShapeType<T extends ObjectProperty> = NonEmptyObject<{
 }> & NonEmptyObject<{
   [O in Exclude<keyof T['properties'], ArrayItem<T['required']>>]?: ValueTypeOf<T['properties'][O]>
 }>;
-export type ObjectValueType<T extends ObjectProperty> = ObjectShapeType<T> & ObjectDiscriminatorType<T>;
-export type ObjectDiscriminatorType<T extends ObjectProperty> =
+
+type ObjectValueType<T extends Property> =
+  T extends ObjectProperty
+    ? ObjectShapeType<T> & ObjectDiscriminatorType<T>
+    : Record<string, unknown>;
+type ObjectDiscriminatorType<T extends ObjectProperty> =
   T extends { oneOf: ReadonlyArray<ObjectProperty> }
     ? ObjectValueUnionType<T["oneOf"][number]>
     : unknown;
 
-export type ObjectValueUnionType<T extends ObjectProperty> = T extends any ? ObjectValueType<T> : unknown;
+type ObjectValueUnionType<T extends ObjectProperty> = T extends any ? ObjectValueType<T> : unknown;
 
-type StringValueType<T extends StringProperty> =
-  T extends { enum: ReadonlyArray<string> }
-    ? T["enum"][number]
-    : T extends { const: string }
-      ? T["const"]
-      : T extends { format: keyof Formats }
-        ? Formats[T["format"]]
-        : string;
+type StringValueType<T extends Property> =
+  T extends StringProperty
+    ? T extends { enum: ReadonlyArray<string> }
+      ? T["enum"][number]
+      : T extends { const: string }
+        ? T["const"]
+        : T extends { format: keyof Formats }
+          ? Formats[T["format"]]
+          : string
+    : string;
+
+type ArrayValueType<T extends Property> =
+  T extends ArrayProperty
+    ? ValueTypeOf<T["items"]>
+    : unknown[]

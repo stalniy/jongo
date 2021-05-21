@@ -1,9 +1,8 @@
 
 import { Entity, PropertyValueType } from "./Entity";
-import { jsonSchema, ObjectDiscriminatorType, ObjectProperty, ObjectValueType, ObjectValueUnionType } from "./jsonSchema";
+import { jsonSchema } from "./jsonSchema";
 import { Where } from "./Where";
 import { ChangeSet } from "./ChangeSet";
-import { FromSchema } from "json-schema-to-ts";
 import { ObjectId } from "mongodb"
 
 const schema = jsonSchema({
@@ -93,7 +92,7 @@ type s = typeof being;
 type Being = PropertyValueType<s>;
 
 const a: Being = {
-  type: "dog",
+  type: "human",
   name: "Taily",
   _id: new ObjectId(),
   wool: "me"
@@ -103,9 +102,7 @@ interface User extends Entity<typeof schema> {}
 
 
 const where: Where<User> = {
-  address: {
-
-  }
+  _id: new ObjectId()
 }
 
 const updates: ChangeSet<User> = {
@@ -123,7 +120,7 @@ const updates: ChangeSet<User> = {
   },
   $push: {
     items: {
-      $each: ["et"],
+      $each: [],
       $sort: {
 
       }

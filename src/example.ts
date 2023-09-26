@@ -102,28 +102,28 @@ interface User extends Entity<typeof schema> {}
 
 
 const where: Where<User> = {
-  _id: new ObjectId()
+  _id: new ObjectId(),
 }
 
 const updates: ChangeSet<User> = {
   $inc: {
-
+    "address.index": 1
   },
-  $set: {
+  // $set: {
 
-  },
-  $addToSet: {
+  // },
+  // $addToSet: {
 
-  },
-  $pop: {
-    items: 1
-  },
-  $push: {
-    items: {
-      $each: [],
-      $sort: {
+  // },
+  // $pop: {
+  //   items: 1
+  // },
+  // $push: {
+  //   items: {
+  //     $each: [],
+  //     $sort: {
 
-      }
-    }
-  }
+  //     }
+  //   }
+  // }
 }

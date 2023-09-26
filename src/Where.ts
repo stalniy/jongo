@@ -1,8 +1,9 @@
-import { ObjectProperty, Property, Paths } from "./jsonSchema";
-import { Entity, SchemaOf, PropertyValueType } from "./Entity";
+import { PropertyValueType, SchemaOf } from "./Entity";
+import { ObjectProperty, Paths, Property, TypedProperty } from "./jsonSchema";
+import { MixedProperty } from "./jsonSchema/MixedProperty";
 import { Join, NextIndex } from "./utils";
 
-export type Where<T extends Entity<any>> = WhereShape<SchemaOf<T>>;
+export type Where<T> = WhereShape<SchemaOf<T>>;
 
 type WhereShape<T extends ObjectProperty> =
   & ObjectOperators<T>
@@ -20,14 +21,25 @@ type WhereItem<T extends ObjectProperty> = {
   -readonly [K in keyof T["properties"]]?: OperatorsForProp<T["properties"][K]>
 };
 
-export type OperatorsForProp<TProp extends Property, TValue = PropertyValueType<TProp>> = {
+export type OperatorsForProp<TProp extends Property, TValue = PropertyValueType<TProp>> =
+  TProp extends TypedProperty
+    ? OperatorsForPropTypes<TProp, TValue>[TProp['type']]
+    : TProp extends MixedProperty
+      ? DistributeOperatorsForMixedProperty<TProp, TProp['type'][number], TValue>
+      : never;
+
+type DistributeOperatorsForMixedProperty<T extends MixedProperty, TType extends T['type'][number], TValue> = TType extends string
+  ? OperatorsForPropTypes<T, TValue>[TType]
+  : never;
+
+type OperatorsForPropTypes<TProp extends Property, TValue = PropertyValueType<TProp>> = {
   null: OperatorsExpr<TValue>;
   string: OperatorsExpr<TValue, StringOperators<TValue>>;
   number: OperatorsExpr<TValue, NumberOperators<TValue>>;
   boolean: OperatorsExpr<TValue>;
   object: OperatorsExpr<TValue, ObjectOperators<TProp>>;
   array: OperatorsExpr<TValue, ArrayOperators<TProp, TValue extends any[] ? TValue[number] : never>>;
-}[TProp["type"]];
+};
 
 type ComparableOperators<V> =
   | { $lt: V }
